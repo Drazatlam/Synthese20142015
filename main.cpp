@@ -19,9 +19,12 @@ int main()
     QVector3D b(900,900,900);
 
     MeshBuilder mb;
-    Mesh cone = mb.sphere(10,100);
-    QString nom="C:/Users/etu/Desktop/objet.obj";
-    mb.saveMesh(nom,cone);
+    Mesh cone = mb.sphere(10,10);
+    QString nom="C:/Users/etu/Desktop/objet.off";
+    mb.saveMeshOFF(nom,cone);
+    mb.loadMeshOFF(nom);
+    QString nom2="C:/Users/etu/Desktop/objet.obj";
+    mb.saveMesh(nom2,cone);
 
     return 0;
 }

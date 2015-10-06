@@ -2,7 +2,10 @@
 #include <QFile>
 #include <QTextStream>
 #include <iostream>
+#include <fstream>
 #include <cmath>
+#include <sstream>
+#include <vector>
 #ifndef fmin
 #define fmin(a,b) a<b?a:b
 #endif
@@ -228,6 +231,84 @@ Mesh MeshBuilder::tronconCone(double hauteur, double rayon, double rayon2, int c
 
     return Mesh(geom,topo,norm);
 
+}
+
+std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    split(s, delim, elems);
+    return elems;
+}
+
+Mesh MeshBuilder::loadMeshOFF(QString &nom)
+{
+    std::ifstream file(nom.toStdString());
+    QList<QVector3D> geom;
+    QList<QVector3D> norm;
+    QList<int> topo;
+    if(file){
+        string line;
+        while(true){
+            getline(file,line);
+            std::vector<string> strings=split(line,' ');
+            if(strings.size()!=0){
+                try{
+                    std::stoi(strings[0]);
+                    break;
+                }
+                catch(std::invalid_argument& e){
+
+                }
+            }
+        }
+        std::vector<string> strings=split(line,' ');
+        int nbv=std::stoi(strings[0]);
+        int nbf=std::stoi(strings[1]);
+        int nbe=std::stoi(strings[2]);
+        std::cout<<nbv<<" "<<nbf<<" "<<nbe<<std::endl;
+
+        for(int i=0;i<nbv;++i){
+            getline(file,line);
+            strings=split(line,' ');
+            double x=std::stod(strings[0]);
+            double y=std::stod(strings[1]);
+            double z=std::stod(strings[2]);
+            geom.append(QVector3D(x,y,z));
+        }
+
+        for(int i=0;i<nbf;++i){
+            getline(file,line);
+            strings=split(line,' ');
+            int a=std::stod(strings[1]);
+            int b=std::stod(strings[2]);
+            int c=std::stod(strings[3]);
+            topo.append(a);
+            topo.append(0);
+            topo.append(0);
+
+            topo.append(b);
+            topo.append(0);
+            topo.append(0);
+
+            topo.append(c);
+            topo.append(0);
+            topo.append(0);
+        }
+
+
+    }
+
+
+    Mesh retour(geom, topo, norm);
+    return retour;
 }
 
 Mesh MeshBuilder::sphere(double rayon, int cercle)
@@ -459,6 +540,29 @@ void MeshBuilder::saveMesh(QString &nom, Mesh& mesh)
     out << face << "/" << texture << "/" << normale << " ";
     }
     out << "\n";
+    }
+
+    file.close();
+    cout<<"fichier fermé"<<endl;
+}
+
+void MeshBuilder::saveMeshOFF(QString &nom, Mesh &mesh)
+{
+    QFile file(nom);
+    cout<<"fichier créé"<<endl;
+    file.open((QIODevice::WriteOnly | QIODevice::Text));
+    cout<<"fichier ouvert"<<endl;
+    QTextStream out(&file);
+    cout<<"flux créé"<<endl;
+    out<<"OFF\n";
+    out<<(mesh.getGeom().size())<<" "<<(mesh.getTopo().size()/9)<<" "<<1<<"\n";
+
+    for(QList<QVector3D>::iterator itVect = mesh.getGeom().begin(); itVect != mesh.getGeom().end(); ++itVect) {
+    out << itVect->x() << " " << itVect->y() << " " << itVect->z() << "\n";
+    }
+
+    for(int i=0;i<mesh.getTopo().size();i+=9){
+        out<<"3 "<<mesh.getTopo().at(i)<<" "<<mesh.getTopo().at(i+3)<<" "<<mesh.getTopo().at(i+6)<<"\n";
     }
 
     file.close();

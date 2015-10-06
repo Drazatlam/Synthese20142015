@@ -18,7 +18,9 @@ public:
     Mesh cone(double hauteur, double rayon, int cercle);
     Mesh tronconCone(double hauteur, double rayon, double rayon2, int cercle);
     Mesh loadMesh(QString& nom);
+    Mesh loadMeshOFF(QString& nom);
     void saveMesh(QString& nom, Mesh &mesh);
+    void saveMeshOFF(QString& nom, Mesh &mesh);
     ~MeshBuilder();
 
 
